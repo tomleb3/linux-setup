@@ -1,0 +1,106 @@
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars_prompt:
+      - name: git_user_email
+        prompt: 'Enter your git email'
+        private: no
+
+  handlers:
+      - name: Reload systemd
+        ansible.builtin.systemd:
+            daemon_reload: yes
+
+  tasks:
+      - name: Update all packages
+        apt:
+            update_cache: yes
+            upgrade: dist
+        when: ansible_os_family == "Debian"
+
+      - name: Install essential tools
+        package:
+            name:
+                - git
+                - curl
+                - htop
+                - npm
+                - nodejs
+                - vim
+                - code
+            state: present
+
+      - name: Ensure .bash_aliases is sourced in .bashrc
+        ansible.builtin.blockinfile:
+            path: '{{ ansible_env.HOME }}/.bashrc'
+            marker: '# {mark} ANSIBLE MANAGED BLOCK: SHARED ALIASES'
+            block: |
+                if [ -f ~/.bash_aliases ]; then
+                    . ~/.bash_aliases
+                fi
+            create: yes
+
+      - name: Copy configs files to home
+        ansible.builtin.copy:
+            src: ./configs/home/
+            dest: '{{ ansible_env.HOME }}'
+            owner: '{{ ansible_user_id }}'
+            group: '{{ ansible_user_gid }}'
+            mode: '0755'
+
+      - name: Configure git email
+        community.general.git_config:
+            name: 'user.email'
+            value: '{{ git_user_email }}'
+            scope: global
+            state: present
+        become: no
+
+      - name: Create VSCode config directory
+        ansible.builtin.file:
+            path: '{{ ansible_env.HOME }}/.config/Code/User'
+            state: directory
+            owner: '{{ ansible_user_id }}'
+            group: '{{ ansible_user_gid }}'
+            mode: '0755'
+        become: no
+
+      - name: Copy VSCode settings
+        ansible.builtin.copy:
+            src: ./configs/vscode/settings.json
+            dest: '{{ ansible_env.HOME }}/.config/Code/User/settings.json'
+            owner: '{{ ansible_user_id }}'
+            group: '{{ ansible_user_gid }}'
+            mode: '0644'
+        become: no
+
+      - name: Install VSCode extensions
+        ansible.builtin.shell: |
+            while IFS= read -r extension; do
+                /usr/bin/code --install-extension "$extension" --force
+            done < {{ playbook_dir }}/configs/vscode/extensions.txt
+        become: no
+        changed_when: false
+        ignore_errors: yes
+
+      - name: Copy udev rules
+        ansible.builtin.copy:
+            src: ./configs/udev/
+            dest: /etc/udev/rules.d/
+            owner: root
+            group: root
+            mode: '0644'
+        notify: Reload systemd
+
+      - name: Enable and start essential services
+        ansible.builtin.systemd:
+            name: '{{ item }}'
+            enabled: yes
+            state: started
+        loop:
+            - ssh
+        ignore_errors: yes
+
+      - name: Run system maintenance
+        ansible.builtin.shell: source {{ ansible_env.HOME }}/.bashrc && maintenance

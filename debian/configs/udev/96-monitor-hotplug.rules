@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="drm", RUN+="/bin/sudo -u USER DISPLAY=:0 /home/USER/scripts/set_max_refresh.sh"
+ACTION=="change", SUBSYSTEM=="drm", RUN+="/bin/sudo -u USER DISPLAY=:0 /home/USER/scripts/set_max_refresh.sh"

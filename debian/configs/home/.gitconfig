@@ -1,0 +1,43 @@
+[user]
+	name = Tom
+[core]
+	editor = vim
+[column]
+        ui = auto
+[branch]
+        sort = -committerdate
+[tag]
+        sort = version:refname
+[commit]
+	verbose = true
+[rerere]
+        enabled = true
+        autoupdate = true
+[help]
+        autocorrect = prompt
+[fetch]
+        prune = true
+        pruneTags = true
+	all = true
+[diff]
+        algorithm = histogram
+        mnemonicPrefix = true
+        renames = true
+[pull]
+	rebase = true
+[push]
+        autoSetupRemote = true
+[rebase]
+        autoSquash = true
+        autoStash = true
+[alias]
+        l = log --oneline --graph -20 --date=short --pretty=format:'%C(auto)%h%d %s %C(green)(%ad) %C(bold blue)<%an>%C(reset)'
+	co = checkout
+	cob = checkout -b
+	s = status
+	cp = cherry-pick --allow-empty
+	ri = "!f() { git rebase -i HEAD~$1; }; f"
+	fixup = "!f() { git commit --fixup=$1; }; f"
+	b = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) (%(color:green)%(committerdate:relative)%(color:reset))'
+	br = branch
+	wip = "!git add . && git commit -m 'Work in progress'"
