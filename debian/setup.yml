@@ -8,36 +8,39 @@
             daemon_reload: yes
 
   tasks:
-      - name: Update all packages
-        ansible.builtin.apt:
-            update_cache: yes
-            upgrade: dist
+      - name: Debian System Setup
+        block:
+            - name: Update all packages
+              ansible.builtin.apt:
+                  update_cache: yes
+                  upgrade: dist
 
-      - name: Install essential tools
-        ansible.builtin.apt:
-            name:
-                - git
-                - curl
-                - htop
-                - npm
-                - nodejs
-                - vim
-            state: present
+            - name: Install essential tools
+              ansible.builtin.apt:
+                  name:
+                      - git
+                      - curl
+                      - htop
+                      - npm
+                      - nodejs
+                      - vim
+                  state: present
 
-      - name: Copy udev rules
-        ansible.builtin.copy:
-            src: ./debian/configs/udev/
-            dest: /etc/udev/rules.d/
-            owner: root
-            group: root
-            mode: '0644'
-        notify: Reload systemd
+            - name: Copy udev rules
+              ansible.builtin.copy:
+                  src: ./debian/configs/udev/
+                  dest: /etc/udev/rules.d/
+                  owner: root
+                  group: root
+                  mode: '0644'
+              notify: Reload systemd
 
-      - name: Enable and start essential services
-        ansible.builtin.systemd:
-            name: '{{ item }}'
-            enabled: yes
-            state: started
-        loop:
-            - ssh
-        ignore_errors: yes
+            - name: Enable and start essential services
+              ansible.builtin.systemd:
+                  name: '{{ item }}'
+                  enabled: yes
+                  state: started
+              loop:
+                  - ssh
+              ignore_errors: yes
+        when: ansible_os_family == "Debian"
