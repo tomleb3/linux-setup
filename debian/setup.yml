@@ -1,7 +1,6 @@
 - hosts: localhost
   connection: local
   become: true
-  when: ansible_os_family == "Debian"
 
   handlers:
       - name: Reload systemd

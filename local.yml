@@ -1,4 +1,5 @@
-- import_playbook: ./debian/setup.yml
+- include_playbook: ./debian/setup.yml
+  when: ansible_os_family == "Debian"
 
 - hosts: localhost
   connection: local
