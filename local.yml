@@ -30,7 +30,6 @@
                       - npm
                       - nodejs
                       - vim
-                      - code
                   state: present
 
             - name: Copy udev rules
