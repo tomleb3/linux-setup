@@ -1,3 +1,5 @@
+- import_playbook: ./debian/setup.yml
+
 - hosts: localhost
   connection: local
   become: true
@@ -7,50 +9,7 @@
         prompt: 'Enter your git email'
         private: no
 
-  handlers:
-      - name: Reload systemd
-        ansible.builtin.systemd:
-            daemon_reload: yes
-
   tasks:
-      # --- Debian Specific System Tasks ---
-      - name: Debian System Setup
-        block:
-            - name: Update all packages
-              ansible.builtin.apt:
-                  update_cache: yes
-                  upgrade: dist
-
-            - name: Install essential tools
-              ansible.builtin.apt:
-                  name:
-                      - git
-                      - curl
-                      - htop
-                      - npm
-                      - nodejs
-                      - vim
-                  state: present
-
-            - name: Copy udev rules
-              ansible.builtin.copy:
-                  src: ./configs/udev/
-                  dest: /etc/udev/rules.d/
-                  owner: root
-                  group: root
-                  mode: '0644'
-              notify: Reload systemd
-
-            - name: Enable and start essential services
-              ansible.builtin.systemd:
-                  name: '{{ item }}'
-                  enabled: yes
-                  state: started
-              loop:
-                  - ssh
-              ignore_errors: yes
-        when: ansible_os_family == "Debian"
-
       # --- Cross-Platform / User Config Tasks ---
       - name: Ensure .bash_aliases is sourced in .bashrc
         ansible.builtin.blockinfile:
@@ -64,7 +23,7 @@
 
       - name: Copy configs files to home
         ansible.builtin.copy:
-            src: ./configs/home/
+            src: ./home/
             dest: '{{ ansible_env.HOME }}'
             owner: '{{ ansible_user_id }}'
             group: '{{ ansible_user_gid }}'
@@ -89,7 +48,7 @@
 
       - name: Copy VSCode settings
         ansible.builtin.copy:
-            src: ./configs/vscode/settings.json
+            src: ./vscode/settings.json
             dest: '{{ ansible_env.HOME }}/.config/Code/User/settings.json'
             owner: '{{ ansible_user_id }}'
             group: '{{ ansible_user_gid }}'
@@ -100,7 +59,7 @@
         ansible.builtin.shell: |
             while IFS= read -r extension; do
                 /usr/bin/code --install-extension "$extension" --force
-            done < {{ playbook_dir }}/configs/vscode/extensions.txt
+            done < {{ playbook_dir }}/vscode/extensions.txt
         become: no
         changed_when: false
         ignore_errors: yes
