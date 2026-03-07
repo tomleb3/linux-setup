@@ -3,7 +3,6 @@
 
 - hosts: localhost
   connection: local
-  become: true
 
   vars_prompt:
       - name: git_user_email
@@ -36,7 +35,7 @@
             value: '{{ git_user_email }}'
             scope: global
             state: present
-        become: no
+        when: git_user_email != ""
 
       # --- VSCode Setup (Native Linux only, WSL is handled in wsl/setup.yml) ---
       - name: VSCode Setup
@@ -46,24 +45,18 @@
                   path: '{{ ansible_env.HOME }}/.config/Code/User'
                   state: directory
                   mode: '0755'
-              become: yes
-              become_user: '{{ ansible_user_id }}'
 
             - name: Copy VSCode settings
               ansible.builtin.copy:
                   src: ./vscode/settings.json
                   dest: '{{ ansible_env.HOME }}/.config/Code/User/settings.json'
                   mode: '0644'
-              become: yes
-              become_user: '{{ ansible_user_id }}'
 
             - name: Install VSCode extensions
               ansible.builtin.shell: |
                   while IFS= read -r extension; do
                       /usr/bin/code --install-extension "$extension" --force
                   done < {{ playbook_dir }}/vscode/extensions.txt
-              become: yes
-              become_user: '{{ ansible_user_id }}'
               changed_when: false
               ignore_errors: yes
         when: "'microsoft' not in ansible_kernel | lower and 'wsl' not in ansible_kernel | lower"
