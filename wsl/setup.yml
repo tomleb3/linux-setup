@@ -15,7 +15,7 @@
 
             - name: Copy VSCode settings
               ansible.builtin.copy:
-                  src: '{{ playbook_dir }}/vscode/settings.json'
+                  src: '../vscode/settings.json'
                   dest: '{{ ansible_env.HOME }}/.config/Code/User/settings.json'
                   mode: '0644'
               become: yes
