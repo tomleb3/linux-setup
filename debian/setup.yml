@@ -42,5 +42,5 @@
                   state: started
               loop:
                   - ssh
-              ignore_errors: yes
+              when: "'microsoft' not in ansible_kernel | lower and 'wsl' not in ansible_kernel | lower"
         when: ansible_os_family == "Debian"

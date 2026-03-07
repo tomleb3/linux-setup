@@ -23,11 +23,15 @@
 
             - name: Install VSCode extensions
               ansible.builtin.shell: |
+                  CODE_CLI=$(find "$HOME/.vscode-server/bin" -name "code" -path "*/remote-cli/*" 2>/dev/null | sort -r | head -1)
+                  if [ -z "$CODE_CLI" ]; then
+                      echo "VSCode Server CLI not found, skipping"
+                      exit 0
+                  fi
                   while IFS= read -r extension; do
-                      code --install-extension "$extension" --force
+                      "$CODE_CLI" --install-extension "$extension" --force
                   done < ../vscode/extensions.txt
               become: yes
               become_user: '{{ ansible_user_id }}'
               changed_when: false
-              ignore_errors: yes
         when: "'microsoft' in ansible_kernel | lower or 'wsl' in ansible_kernel | lower"
