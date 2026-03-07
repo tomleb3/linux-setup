@@ -41,25 +41,24 @@
         ansible.builtin.file:
             path: '{{ ansible_env.HOME }}/.config/Code/User'
             state: directory
-            owner: '{{ ansible_user_id }}'
-            group: '{{ ansible_user_gid }}'
             mode: '0755'
-        become: no
+        become: yes
+        become_user: '{{ ansible_user_id }}'
 
       - name: Copy VSCode settings
         ansible.builtin.copy:
             src: ./vscode/settings.json
             dest: '{{ ansible_env.HOME }}/.config/Code/User/settings.json'
-            owner: '{{ ansible_user_id }}'
-            group: '{{ ansible_user_gid }}'
             mode: '0644'
-        become: no
+        become: yes
+        become_user: '{{ ansible_user_id }}'
 
       - name: Install VSCode extensions
         ansible.builtin.shell: |
             while IFS= read -r extension; do
                 /usr/bin/code --install-extension "$extension" --force
             done < {{ playbook_dir }}/vscode/extensions.txt
-        become: no
+        become: yes
+        become_user: '{{ ansible_user_id }}'
         changed_when: false
         ignore_errors: yes
