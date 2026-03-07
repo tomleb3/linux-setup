@@ -1,4 +1,5 @@
 - import_playbook: ./debian/setup.yml
+- import_playbook: ./wsl/setup.yml
 
 - hosts: localhost
   connection: local
@@ -37,6 +38,7 @@
             state: present
         become: no
 
+      # --- VSCode Setup (Native Linux) ---
       - name: Create VSCode config directory
         ansible.builtin.file:
             path: '{{ ansible_env.HOME }}/.config/Code/User'

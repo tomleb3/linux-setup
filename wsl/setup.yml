@@ -1,0 +1,33 @@
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+      - name: WSL System Setup
+        block:
+            - name: Create VSCode config directory
+              ansible.builtin.file:
+                  path: '{{ ansible_env.HOME }}/.config/Code/User'
+                  state: directory
+                  mode: '0755'
+              become: yes
+              become_user: '{{ ansible_user_id }}'
+
+            - name: Copy VSCode settings
+              ansible.builtin.copy:
+                  src: ./vscode/settings.json
+                  dest: '{{ ansible_env.HOME }}/.config/Code/User/settings.json'
+                  mode: '0644'
+              become: yes
+              become_user: '{{ ansible_user_id }}'
+
+            - name: Install VSCode extensions
+              ansible.builtin.shell: |
+                  while IFS= read -r extension; do
+                      code --install-extension "$extension" --force
+                  done < {{ playbook_dir }}/vscode/extensions.txt
+              become: yes
+              become_user: '{{ ansible_user_id }}'
+              changed_when: false
+              ignore_errors: yes
+        when: "'microsoft' in ansible_kernel | lower or 'wsl' in ansible_kernel | lower"
